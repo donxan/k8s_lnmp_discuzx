@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dz-web
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+#  tls:
+#  - hosts:
+#    - dz.abcgogo.com
+#    secretName: dz-cert
+  rules:
+  - host: dz.abcgogo.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: dz-web
+          servicePort: 80

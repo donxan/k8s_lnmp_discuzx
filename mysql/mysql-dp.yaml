@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dz-mysql
+  labels:
+    app: discuz
+spec:
+  selector:
+    matchLabels:
+      app: discuz
+      tier: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: discuz
+        tier: mysql
+    spec:
+      imagePullSecrets:
+       - name: harbor-secret
+      containers:
+      - image: harbor.abcgogo.com/lnmp/dz_mysql:5.7
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        ports:
+        - containerPort: 3306
+          name: dz-mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /data
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-claim

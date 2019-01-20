@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dz-web
+spec:
+  template:
+    metadata:
+      labels:
+        name: dz-web
+        namespace: default
+spec:
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 80
+    nodePort: 30001  
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: dz-web
+  labels:
+    app: discuz  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discuz
+      tier: nginx-php
+  template:
+    metadata:
+      labels:
+        app: discuz
+        tier: nginx-php
+    spec:
+      imagePullSecrets:
+      - name: harbor-secret	
+      containers:
+      - name: dz-web
+        image: harbor.abcgogo.com/lnmp/nginx-php:latest
+        ports:
+        - containerPort: 80
+        - containerPort: 9000
+        volumeMounts:
+        - name: web-persistent-storage
+          mountPath: /var/www/html/
+      volumes:
+      - name: web-persistent-storage
+        persistentVolumeClaim:
+          claimName: web-claim		
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dz-web
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: dz.abcgogo.com
+    http:
+      paths:
+      - backend:
+          serviceName: dz-web
+          servicePort: 80
